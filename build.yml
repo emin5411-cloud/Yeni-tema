@@ -1,0 +1,44 @@
+name: Opel Astra APK Build
+
+on:
+  workflow_dispatch: # Manuel baslatabilmeniz icin
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Kodlari Al
+      uses: actions/checkout@v4
+
+    - name: Java Kur
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Flutter Kur
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.0'
+        channel: 'stable'
+
+    - name: Sifirdan Proje Olustur ve Kodu Göm
+      run: |
+        flutter create --org com.opel.astra opel_launcher
+        cp main.dart opel_launcher/lib/main.dart
+        rm -rf .github main.dart
+        mv opel_launcher/* ./
+        mv opel_launcher/.metadata ./ 2>/dev/null || true
+
+    - name: Paketleri Yukle
+      run: flutter pub get
+
+    - name: APK Uret
+      run: flutter build apk --release --no-shrink
+
+    - name: APK Dosyasini Disari Aktar
+      uses: actions/upload-artifact@v4
+      with:
+        name: opel-astra-multimedia-apk
+        path: build/app/outputs/flutter-apk/app-release.apk
